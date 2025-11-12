@@ -1,0 +1,22 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tonal.Core", "src/Tonal.Core/Tonal.Core.csproj", "{8F3F22AE-1D2F-4E3C-A124-32140AF7B2E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tonal.Core.Tests", "tests/Tonal.Core.Tests/Tonal.Core.Tests.csproj", "{B83B6F9E-A8E5-4C97-A8E0-54CE5A71F048}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {8F3F22AE-1D2F-4E3C-A124-32140AF7B2E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {8F3F22AE-1D2F-4E3C-A124-32140AF7B2E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {8F3F22AE-1D2F-4E3C-A124-32140AF7B2E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {8F3F22AE-1D2F-4E3C-A124-32140AF7B2E5}.Release|Any CPU.Build.0 = Release|Any CPU
+        {B83B6F9E-A8E5-4C97-A8E0-54CE5A71F048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {B83B6F9E-A8E5-4C97-A8E0-54CE5A71F048}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {B83B6F9E-A8E5-4C97-A8E0-54CE5A71F048}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {B83B6F9E-A8E5-4C97-A8E0-54CE5A71F048}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+EndGlobal

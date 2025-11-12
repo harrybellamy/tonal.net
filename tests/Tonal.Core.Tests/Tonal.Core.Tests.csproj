@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+  <ProjectReference Include="../../src/Tonal.Core/Tonal.Core.csproj" />
+  
+  <!-- ✅ Use the latest compatible xUnit packages -->
+  <PackageReference Include="xunit" Version="2.9.0" />
+  <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+
+  <!-- ✅ Explicitly include xunit.abstractions (prevents the missing DLL issue) -->
+  <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+  
+  <!-- ✅ Optional: test SDK ensures smooth integration -->
+  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+</ItemGroup>
+</Project>
