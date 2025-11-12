@@ -125,10 +125,10 @@ public static partial class Midi
 
     private static int[] PcsetFromMidi(int[] midi)
     {
-        return midi
+        return [.. midi
             .Select(Chroma)
-            .OrderBy((a, b) => a - b)
-            .Filter((n, i, a) => i == 0 || n != a[i - 1]);
+            .Distinct()
+            .OrderBy(n => n)];
     }
 
     /**

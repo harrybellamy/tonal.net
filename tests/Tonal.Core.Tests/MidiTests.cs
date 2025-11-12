@@ -1,3 +1,4 @@
+using System.Linq;
 using Xunit;
 
 namespace Tonal.Core.Tests;
@@ -113,52 +114,57 @@ public class MidiTests
         Assert.Equal(expected, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.Pcset")]
+    [Fact]
     public void Pcset_FromChroma_ReturnsExpected()
     {
-        // expect(Midi.pcset("100100100101")).toEqual([0, 3, 6, 9, 11]);
+        var result = Midi.Pcset("100100100101");
+        Assert.Equal(new[] { 0, 3, 6, 9, 11 }, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.Pcset")]
+    [Fact]
     public void Pcset_FromMidi_ReturnsExpected()
     {
-        // expect(Midi.pcset([62, 63, 60, 65, 70, 72])).toEqual([0, 2, 3, 5, 10]);
+        var result = Midi.Pcset([62, 63, 60, 65, 70, 72]);
+        Assert.Equal(new[] { 0, 2, 3, 5, 10 }, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.PcsetNearest")]
+    [Fact]
     public void PcsetNearest_FindNearestUpwards_ReturnsExpected()
     {
-        // const nearest = Midi.pcsetNearest([0, 5, 7]);
-        // expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(nearest)).toEqual([
-        //   0, 0, 0, 5, 5, 5, 7, 7, 7, 7, 12, 12, 12,
-        // ]);
+        var nearest = Midi.PcsetNearest([0, 5, 7]);
+        var input = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+        var expected = new int?[] { 0, 0, 0, 5, 5, 5, 7, 7, 7, 7, 12, 12, 12 };
+        var result = input.Select(nearest).ToArray();
+        Assert.Equal(expected, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.PcsetNearest")]
+    [Fact]
     public void PcsetNearest_ChromaticToCMinorPentatonic_ReturnsExpected()
     {
-        // const nearest = Midi.pcsetNearest("100101010010");
-        // expect(
-        //   [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47].map(nearest),
-        // ).toEqual([36, 36, 39, 39, 41, 41, 43, 43, 43, 46, 46, 48]);
+        var nearest = Midi.PcsetNearest("100101010010");
+        var input = new[] { 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 };
+        var expected = new int?[] { 36, 36, 39, 39, 41, 41, 43, 43, 43, 46, 46, 48 };
+        var result = input.Select(nearest).ToArray();
+        Assert.Equal(expected, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.PcsetNearest")]
+    [Fact]
     public void PcsetNearest_ChromaticToHalfOctave_ReturnsExpected()
     {
-        // const nearest = Midi.pcsetNearest("100000100000");
-        // expect(
-        //   [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47].map(nearest),
-        // ).toEqual([36, 36, 36, 42, 42, 42, 42, 42, 42, 48, 48, 48]);
+        var nearest = Midi.PcsetNearest("100000100000");
+        var input = new[] { 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 };
+        var expected = new int?[] { 36, 36, 36, 42, 42, 42, 42, 42, 42, 48, 48, 48 };
+        var result = input.Select(nearest).ToArray();
+        Assert.Equal(expected, result);
     }
 
-    [Fact(Skip = "Not yet implemented: Midi.PcsetNearest")]
-    public void PcsetNearest_EmptyPcset_ReturnsUndefined()
+    [Fact]
+    public void PcsetNearest_EmptyPcset_ReturnsNull()
     {
-        // expect([10, 30, 40].map(Midi.pcsetNearest([]))).toEqual([
-        //   undefined,
-        //   undefined,
-        //   undefined,
-        // ]);
+        var nearest = Midi.PcsetNearest([]);
+        var input = new[] { 10, 30, 40 };
+        var expected = new int?[] { null, null, null };
+        var result = input.Select(nearest).ToArray();
+        Assert.Equal(expected, result);
     }
 }
