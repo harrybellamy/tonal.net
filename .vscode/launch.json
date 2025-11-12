@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Tonal Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "dotnet",
+      "args": [
+        "test",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~Tonal.Core.Tests"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run Tonal.Core Console (if you add one)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Tonal.Core/bin/Debug/net9.0/Tonal.Core.dll",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    }
+  ]
+}
