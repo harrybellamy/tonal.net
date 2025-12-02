@@ -168,7 +168,7 @@ public static partial class Midi
     }
 
     private static Func<int, int?> PcsetNearestInternal(int[]? set)
-    { 
+    {
         return midi =>
         {
             if (set == null || set.Length == 0) return null;
@@ -181,6 +181,48 @@ public static partial class Midi
                 if (set.Contains(chDown)) return midi - i;
             }
             return null;
+        };
+    }
+
+    /// <summary>
+    /// Returns a function that, given a scale step index, returns the MIDI note at that step.
+    /// Positive steps go up, negative steps go down.
+    /// </summary>
+    public static Func<int, int?> PcsetSteps(string chroma, int tonic)
+    {
+        var set = Pcset(chroma);
+        var sortedSet = set.OrderBy(x => x).ToArray();
+        
+        return step =>
+        {
+            if (sortedSet.Length == 0) return null;
+            var octaveShift = (step / sortedSet.Length) * 12;
+            if (step < 0 && step % sortedSet.Length != 0)
+            {
+                octaveShift -= 12;
+            }
+            var stepInOctave = ((step % sortedSet.Length) + sortedSet.Length) % sortedSet.Length;
+            var pitchClass = sortedSet[stepInOctave];
+            var tonicChroma = Chroma(tonic);
+            var tonicOctave = tonic / 12;
+            var midiNote = tonicOctave * 12 + tonicChroma + pitchClass - tonicChroma + octaveShift;
+            return midiNote;
+        };
+    }
+
+    /// <summary>
+    /// Returns a function that, given a scale degree (1-indexed), returns the MIDI note at that degree.
+    /// Degree 0 returns null. Negative degrees count downward from 1.
+    /// </summary>
+    public static Func<int, int?> PcsetDegrees(string chroma, int tonic)
+    {
+        var steps = PcsetSteps(chroma, tonic);
+        
+        return degree =>
+        {
+            if (degree == 0) return null;
+            var stepIndex = degree > 0 ? degree - 1 : degree;
+            return steps(stepIndex);
         };
     }
 }

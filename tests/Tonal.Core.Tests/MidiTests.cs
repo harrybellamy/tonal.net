@@ -167,4 +167,52 @@ public class MidiTests
         var result = input.Select(nearest).ToArray();
         Assert.Equal(expected, result);
     }
+
+    [Fact]
+    public void PcsetSteps_WithPositiveSteps_ReturnsExpected()
+    {
+        var scale = Midi.PcsetSteps("101010", 60);
+        var input = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        var expected = new int?[] { 60, 62, 64, 72, 74, 76, 84, 86, 88, 96 };
+        var result = input.Select(scale).ToArray();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void PcsetSteps_WithNegativeSteps_ReturnsExpected()
+    {
+        var scale = Midi.PcsetSteps("101010", 60);
+        var input = new[] { 0, -1, -2, -3, -4, -5, -6, -7, -8, -9 };
+        var expected = new int?[] { 60, 52, 50, 48, 40, 38, 36, 28, 26, 24 };
+        var result = input.Select(scale).ToArray();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void PcsetDegrees_WithPositiveDegrees_ReturnsExpected()
+    {
+        var scale = Midi.PcsetDegrees("101010", 60);
+        var input = new[] { 1, 2, 3, 4, 5 };
+        var expected = new int?[] { 60, 62, 64, 72, 74 };
+        var result = input.Select(scale).ToArray();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void PcsetDegrees_WithMixedDegrees_ReturnsExpected()
+    {
+        var scale = Midi.PcsetDegrees("101010", 60);
+        var input = new[] { -1, -2, -3, 4, 5 };
+        var expected = new int?[] { 52, 50, 48, 72, 74 };
+        var result = input.Select(scale).ToArray();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void PcsetDegrees_WithZeroDegree_ReturnsNull()
+    {
+        var scale = Midi.PcsetDegrees("101010", 60);
+        var result = scale(0);
+        Assert.Null(result);
+    }
 }
