@@ -41,7 +41,7 @@ public static partial class Note
 
         var letter = tokens[0];
         var acc = tokens[1];
-        var octStr = tokens[2];
+        var octStr = tokens.Length > 2 ? tokens[2] : null;
 
         // SEMI contains semitone offsets: C=0, D=2, E=4, F=5, G=7, A=9, B=11
         Dictionary<string, int> SEMI = new() { ["C"] = 0, ["D"] = 2, ["E"] = 4, ["F"] = 5, ["G"] = 7, ["A"] = 9, ["B"] = 11 };
@@ -69,6 +69,7 @@ public static partial class Note
             Octave = oct,
             Chroma = chroma,
             Midi = midi,
+            Height = height,
             Frequency = freq
         };
     }
@@ -221,7 +222,20 @@ public static partial class Note
     /// Simplifies a note’s spelling to use fewer accidentals, or returns an empty string if invalid.
     /// </summary>
     /// <example>Note.Simplify("C###") → "D#"</example>
-    public static string Simplify(string noteName) => throw new NotImplementedException();
+    public static string Simplify(string noteName)
+    {
+        var note = Get(noteName);
+        if (note.Empty) {
+            return "";
+        }
+
+        int midiValue = note.Midi ?? note.Chroma;
+
+        return Tonal.Core.Midi.MidiToNoteName(
+            midiValue, 
+            sharps: note.Alteration > 0, 
+            pitchClass: note.Midi == null);  
+    }
 
     /// <summary>
     /// Returns the enharmonic equivalent of a note. Optionally, specify a target pitch class root.
@@ -243,9 +257,10 @@ public class NoteInfo
     public string Accidentals { get; init; } = string.Empty;
     public int Alteration { get; init; }
     public int? Octave { get; init; }
-    public int? Chroma { get; init; }
+    public int Chroma { get; init; }
     public int? Midi { get; init; }
     public double? Frequency { get; init; }
+    public int Height { get; init; }
     public bool Empty { get; init; }
 }
 
