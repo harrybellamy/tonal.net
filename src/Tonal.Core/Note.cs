@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Tonal.Core;
 
@@ -7,15 +8,98 @@ namespace Tonal.Core;
 /// Provides functions for parsing, transforming, and analyzing musical note names.
 /// Ported from Tonal.js Note module: https://tonaljs.github.io/tonal/docs/basics/notes
 /// </summary>
-public static class Note
+public static partial class Note
 {
+    private static readonly Dictionary<string, NoteInfo> noteNameCache = [];
+    [GeneratedRegex(@"^([a-gA-G]?)([#b]*|x+)(-?\d*)\s*(.*)$", RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
+    private static readonly Regex NoteRegex = MyRegex();
+
     /// <summary>
     /// Parses a note name string and returns a NoteInfo object with properties
     /// like Name, PitchClass, Letter, Step, Accidentals, Alteration, Octave,
     /// Chroma, Midi, and Frequency.
     /// </summary>
     /// <example>Note.Get("C4") → new NoteInfo { Name = "C4", Midi = 60 }</example>
-    public static NoteInfo Get(string noteName) => throw new NotImplementedException();
+    public static NoteInfo Get(string noteName)
+    {
+        if (noteNameCache.TryGetValue(noteName, out NoteInfo? cachedValue))
+        {
+            return cachedValue;
+        }
+
+        var value = Parse(noteName);
+        noteNameCache.Add(noteName, value);
+        return value;
+    }
+
+    private static NoteInfo Parse(string noteName)
+    {
+        var tokens = TokenizeNote(noteName);
+        if (string.IsNullOrEmpty(tokens[0]) || !string.IsNullOrEmpty(tokens[3]))
+            return NoNote;
+
+        var letter = tokens[0];
+        var acc = tokens[1];
+        var octStr = tokens[2];
+
+        // SEMI contains semitone offsets: C=0, D=2, E=4, F=5, G=7, A=9, B=11
+        Dictionary<string, int> SEMI = new() { ["C"] = 0, ["D"] = 2, ["E"] = 4, ["F"] = 5, ["G"] = 7, ["A"] = 9, ["B"] = 11 };
+
+        int offset = SEMI[letter];
+        int alt = AccToAlt(acc);
+        int? oct = string.IsNullOrEmpty(octStr) ? null : int.Parse(octStr);
+
+        int chroma = (offset + alt + 120) % 12;
+        int height = oct == null
+            ? Mod(offset + alt, 12) - 12 * 99
+            : offset + alt + 12 * (oct.Value + 1);
+
+        int? midi = (height >= 0 && height <= 127) ? height : null;
+        double? freq = oct == null ? null : Math.Pow(2, (height - 69) / 12.0) * 440;
+
+        return new NoteInfo
+        {
+            Name = letter + acc + octStr,
+            PitchClass = letter + acc,
+            Letter = letter,
+            Step = 0,
+            Accidentals = acc,
+            Alteration = alt,
+            Octave = oct,
+            Chroma = chroma,
+            Midi = midi,
+            Frequency = freq
+        };
+    }
+
+    private static string[] TokenizeNote(string str)
+    {
+        var match = NoteRegex.Match(str);
+        if (!match.Success)
+            return ["", "", "", ""];
+
+        var letter = match.Groups[1].Value.ToUpper();
+        var acc = match.Groups[2].Value.Replace("x", "##");
+        var octave = match.Groups[3].Value;
+        var rest = match.Groups[4].Value;
+
+        return [letter, acc, octave, rest];
+    }
+
+    private static int AccToAlt(string acc)
+    {
+        int sharps = acc.Count(c => c == '#');
+        int flats = acc.Count(c => c == 'b');
+        return sharps - flats;
+    }
+
+    private static int Mod(int a, int b)
+    {
+        return ((a % b) + b) % b;
+    }
+
+    private static readonly NoteInfo NoNote = new() { Name = "", Empty = true };
 
     /// <summary>
     /// Normalizes a note name string (e.g., converts enharmonic spellings) to a canonical form.
@@ -39,31 +123,30 @@ public static class Note
     /// Returns the octave number from a note name, or null if no octave is included.
     /// </summary>
     /// <example>Note.Octave("C4") → 4</example>
-    public static int? Octave(string noteName) => throw new NotImplementedException();
-
+    public static int? Octave(string noteName) => Get(noteName).Octave;
     /// <summary>
     /// Converts a note name to a MIDI number (if octave present), else returns null.
     /// </summary>
     /// <example>Note.Midi("A4") → 69</example>
-    public static int? Midi(string noteName) => throw new NotImplementedException();
+    public static int? Midi(string noteName) => Get(noteName).Midi;
 
     /// <summary>
     /// Converts a note name to its frequency in Hertz (if octave present), else null.
     /// </summary>
     /// <example>Note.Freq("A4") → 440.0</example>
-    public static double? Freq(string noteName) => throw new NotImplementedException();
+    public static double? Freq(string noteName) => Get(noteName).Frequency;
 
     /// <summary>
     /// Returns the chroma (0–11) for the note/pitch class (ignoring octave) or null if invalid.
     /// </summary>
     /// <example>Note.Chroma("C") → 0</example>
-    public static int? Chroma(string noteName) => throw new NotImplementedException();
+    public static int? Chroma(string noteName) => Get(noteName).Chroma;
 
     /// <summary>
     /// Given a MIDI number (integer or fractional), returns a note name (flat spelling by default).
     /// </summary>
     /// <example>Note.FromMidi(61) → "Db4"</example>
-    public static string FromMidi(int midi) => throw new NotImplementedException();
+    public static string FromMidi(int midi) => Tonal.Core.Midi.MidiToNoteName(midi, sharps: false, pitchClass: false);
 
     /// <summary>
     /// Given a MIDI number, returns a note name using sharps instead of flats.
@@ -155,7 +238,7 @@ public class NoteInfo
 {
     public string Name { get; init; } = string.Empty;
     public string PitchClass { get; init; } = string.Empty;
-    public char Letter { get; init; }
+    public string Letter { get; init; } = string.Empty;
     public int Step { get; init; }
     public string Accidentals { get; init; } = string.Empty;
     public int Alteration { get; init; }
@@ -163,5 +246,6 @@ public class NoteInfo
     public int? Chroma { get; init; }
     public int? Midi { get; init; }
     public double? Frequency { get; init; }
+    public bool Empty { get; init; }
 }
 
