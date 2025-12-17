@@ -153,7 +153,7 @@ public static partial class Note
     /// Given a MIDI number, returns a note name using sharps instead of flats.
     /// </summary>
     /// <example>Note.FromMidiSharps(61) → "C#4"</example>
-    public static string FromMidiSharps(int midi) => throw new NotImplementedException();
+    public static string FromMidiSharps(int midi) => Tonal.Core.Midi.MidiToNoteName(midi, sharps: true, pitchClass: false);
 
     /// <summary>
     /// Given a frequency in Hz, returns the nearest note name (flat spelling by default).

@@ -64,4 +64,29 @@ public class NoteTests
     {
         Assert.Equal(expected, Note.Simplify(input));
     }
+
+    [Fact]
+    public void FromMidi_ShouldReturnNoteName()
+    {
+        Assert.Equal("Bb4", Note.FromMidi(70));
+    }
+
+    [Theory]
+    [InlineData(60, "C4")]
+    [InlineData(61, "Db4")]
+    [InlineData(62, "D4")]
+    public void FromMidi_List_ShouldReturnFlatMappings(int midi, string expected)
+    {
+        Assert.Equal(expected, Note.FromMidi(midi));
+    }
+
+    [Theory]
+    [InlineData(60, "C4")]
+    [InlineData(61, "C#4")]
+    [InlineData(62, "D4")]
+    public void FromMidiSharps_List_ShouldReturnSharpMappings(int midi, string expected)
+    {
+        Assert.Equal(expected, Note.FromMidiSharps(midi));
+    }
+
 }
