@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace Tonal.Core;
@@ -10,7 +9,7 @@ namespace Tonal.Core;
 /// </summary>
 public static partial class Note
 {
-    private static readonly Dictionary<string, NoteInfo> noteNameCache = [];
+    private static readonly ConcurrentDictionary<string, NoteInfo> noteNameCache = [];
     [GeneratedRegex(@"^([a-gA-G]?)([#b]*|x+)(-?\d*)\s*(.*)$", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
     private static readonly Regex NoteRegex = MyRegex();
@@ -29,8 +28,19 @@ public static partial class Note
         }
 
         var value = Parse(noteName);
-        noteNameCache.Add(noteName, value);
+        noteNameCache.TryAdd(noteName, value);
         return value;
+    }
+
+    /// <summary>
+    /// Get note from coordinate objects.
+    /// </summary>
+    /// <param name="noteCoord"></param>
+    /// <returns></returns>
+    public static NoteInfo Get(Coordinates noteCoord)
+    {
+        var pitch = Pitch.Get(noteCoord);
+        return Get(pitch.GetName());
     }
 
     private static NoteInfo Parse(string noteName)
@@ -47,8 +57,10 @@ public static partial class Note
         Dictionary<string, int> SEMI = new() { ["C"] = 0, ["D"] = 2, ["E"] = 4, ["F"] = 5, ["G"] = 7, ["A"] = 9, ["B"] = 11 };
 
         int offset = SEMI[letter];
+        int step = (letter[0] - 'A' + 3) % 7;
         int alt = AccToAlt(acc);
         int? oct = string.IsNullOrEmpty(octStr) ? null : int.Parse(octStr);
+        var coord = new PitchInfo { Step = step, Alt = alt, Oct = oct, Dir = null }.ToCoordinates();
 
         int chroma = (offset + alt + 120) % 12;
         int height = oct == null
@@ -56,7 +68,7 @@ public static partial class Note
             : offset + alt + 12 * (oct.Value + 1);
 
         int? midi = (height >= 0 && height <= 127) ? height : null;
-        double? freq = oct == null ? null : Math.Pow(2, (height - 69) / 12.0) * 440;
+        double? freq = oct == null ? null : Math.Pow(2, (height - 69) / 12.0) * 440; 
 
         return new NoteInfo
         {
@@ -70,7 +82,8 @@ public static partial class Note
             Chroma = chroma,
             Midi = midi,
             Height = height,
-            Frequency = freq
+            Frequency = freq,
+            Coord = coord
         };
     }
 
@@ -172,8 +185,31 @@ public static partial class Note
     /// or an empty string if invalid.
     /// </summary>
     /// <example>Note.Transpose("D", "3M") → "F#"</example>
-    public static string Transpose(string noteName, string interval) => throw new NotImplementedException();
+    public static string Transpose(string noteName, string interval) 
+    {
+        var note = Get(noteName);
+        var intervalCoord = Interval.Get(interval).Coord;
+        if (note.Empty || intervalCoord == null) {
+            return "";
+        }
+        var noteCoord = note.Coord;
+        Coordinates tr;
+        if (noteCoord is PitchClassCoordinates notePcCoord)
+        {
+            var fifths = notePcCoord.Fifths + intervalCoord.Fifths;
+            tr = new PitchClassCoordinates { Fifths = fifths };
+        } 
+        else
+        {
+            var noteNCoord = noteCoord as NoteCoordinates;
+            var fifths = noteNCoord.Fifths + intervalCoord.Fifths;
+            var octaves = noteNCoord.Octaves + intervalCoord.Octaves;
+            tr = new NoteCoordinates { Fifths = fifths, Octaves = octaves };
+        }
 
+        return Note.Get(tr).Name;
+    }
+    
     /// <summary>
     /// Returns a function that transposes any given note by the specified interval.
     /// </summary>
@@ -262,5 +298,6 @@ public class NoteInfo
     public double? Frequency { get; init; }
     public int Height { get; init; }
     public bool Empty { get; init; }
+    public Coordinates Coord { get; init; }
 }
 
